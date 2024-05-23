@@ -1,0 +1,61 @@
+---
+statefulset:
+  _secrets:
+    name: zigbee2mqtt-secrets
+  dnsPolicy: ClusterFirst
+  resources:
+    requests:
+      memory: 100Mi
+      cpu: 200m
+    limits:
+      memory: 100Mi
+      cpu: 200m
+  nodeSelector:
+    kubernetes.io/hostname: raspberrypi6
+
+zigbee2mqtt:
+  homeassistant:
+    enabled: false
+  permit_join: false
+  mqtt:
+    server: "mqtts://mosquitto.k8s.pmarques.info:8883"
+    base_topic: zigbee2mqtt-test
+    user: test
+    password: test-password
+  serial:
+    port: "/dev/ttyACM0"
+    adapter: ember
+  # frontend:
+  #   auth_token: '!secret.yaml auth_token'
+  advanced:
+  #  pan_id: 36853
+  #  ext_pan_id:
+  #    - 220
+  #    - 185
+  #    - 236
+  #    - 92
+  #    - 16
+  #    - 87
+  #    - 76
+  #    - 234
+    channel: 11
+    network_key: '!secret.yaml network_key'
+    log_output:
+      - console
+    log_level: info
+    timestamp_format: 'YYYY-MM-DD HH:mm:ss'
+ingress:
+  enabled: true
+  ingressClassName: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/whitelist-source-range: 192.168.1.0/24,2a01:4b00:88bf:3500:ffff:1::/64
+  tls: ~
+  hosts:
+    - host: zigbee2mqtt-tests.k8s.pmarques.info
+      paths:
+        - path: /
+          pathType: Prefix
